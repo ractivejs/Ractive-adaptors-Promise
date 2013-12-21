@@ -52,43 +52,48 @@
 		<p>
 			Enter an issue number: <input type='number' value='{{id}}' min='1'>
 		</p>
-		{{#issue}}
+		{{# getIssue(id) }}
 			{{#error}}
 				<p><strong>Error: {{message}}</strong></p>
 			{{/error}}
 			{{^error}}
 				<h3>{{title}}</h3>
-				<p>{{body}}</p>
+				<p>{{{ toHTML(body) }}}</p>
 			{{/error}}
 		{{/issue}}
 	</script>
 
 	<!-- Dependencies -->
 	<script src='http://code.jquery.com/jquery-2.0.3.min.js'></script>
+	<script src='lib/showdown.js'></script>
 	<script src='lib/Ractive-legacy.js'></script>
 	<script src='Ractive-adaptors-Promise.js'></script>
 
 	<!-- Demo code -->
 	<script id='demo-code'>
+		// Markdown converter
+		converter = new Showdown.converter();
+
 		ractive = new Ractive({
 			el: 'demo',
 			template: '#demo-template',
 			adaptors: [ 'Promise' ],
-			data: { id: 1 }
+			data: {
+				id: 1,
+				toHTML: function ( md ) {
+					return converter.makeHtml( md );
+				},
+				getIssue: function ( id ) {
+					return $.getJSON( 'https://api.github.com/repos/RactiveJS/Ractive/issues/' + id )
+						.then( null, function ( xhr ) {
+							// Handle errors such as 404.
+							// Note that jQuery returns another promise in this case
+							// which causes an infinite loop.
+							return { error: xhr.responseJSON };
+						});
+				}
+			}
 		});
-		ractive.observe( 'id', function ( id ) {
-			ractive.set( 'issue', getIssue( id ) );
-		});
-
-		function getIssue( id ) {
-			return $.getJSON( 'https://api.github.com/repos/RactiveJS/Ractive/issues/' + id )
-				.then( null, function ( xhr ) {
-					// Handle errors such as 404.
-					// Note that jQuery returns another promise in this case
-					// which causes an infinite loop.
-					return { error: xhr.responseJSON };
-				});
-		}
 	</script>
 
 	<!-- Insert code into the page -->
