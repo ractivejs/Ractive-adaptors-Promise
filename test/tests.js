@@ -52,7 +52,7 @@
 
 		ractive = new Ractive({
 			el: fixture,
-			template: '<p>{{promise.then}}</p>',
+			template: '<p>{{promise}}</p>',
 			data: { promise: deferred.promise },
 			adaptors: [ 'Promise' ]
 		});
